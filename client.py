@@ -1,92 +1,107 @@
-# import all the required  modules
 import socket
 import threading
+import sqlite3
 from tkinter import *
 from tkinter import font
 from tkinter import ttk
- 
-# import all functions /
-#  everything from chat.py file
+from tkinter import messagebox
  
 PORT = 8800
 SERVER = "127.0.0.1"
 ADDRESS = (SERVER, PORT)
 FORMAT = "utf-8"
  
-# Create a new client socket
-# and connect to the server
 client = socket.socket()
 client.connect(ADDRESS)
  
- 
-# GUI class for the chat
 class GUI:
-    # constructor method
+
     def __init__(self):
- 
-        # chat window which is currently hidden
         self.Window = Tk()
         self.Window.withdraw()
  
-        # login window
         self.login = Toplevel()
-        # set the title
         self.login.title("Login")
         self.login.resizable(width=False,
                              height=False)
         self.login.configure(width=400,
                              height=300)
-        # create a Label
-        self.pls = Label(self.login,
-                         text="Please login to continue",
-                         justify=CENTER,
-                         font="Helvetica 14 bold")
+        
+        self.usernameLabel = Label(self.login,
+                               text="Username: ",
+                               font="Helvetica 15")
  
-        self.pls.place(relheight=0.15,
-                       relx=0.2,
-                       rely=0.07)
-        # create a Label
-        self.labelName = Label(self.login,
-                               text="Name: ",
-                               font="Helvetica 12")
- 
-        self.labelName.place(relheight=0.2,
+        self.usernameLabel.place(relheight=0.2,
                              relx=0.1,
-                             rely=0.2)
+                             rely=0.15)
+        
+        self.passwordLabel = Label(self.login,
+                               text="Password: ",
+                               font="Helvetica 15")
  
-        # create a entry box for
-        # tyoing the message
-        self.entryName = Entry(self.login,
+        self.passwordLabel.place(relheight=0.2,
+                             relx=0.1,
+                             rely=0.35)
+ 
+        self.usernameEntry = Entry(self.login,
                                font="Helvetica 14")
  
-        self.entryName.place(relwidth=0.4,
+        self.usernameEntry.place(relwidth=0.4,
                              relheight=0.12,
                              relx=0.35,
                              rely=0.2)
  
-        # set the focus of the cursor
-        self.entryName.focus()
+        self.usernameEntry.focus()
+
+        self.passwordEntry = Entry(self.login,
+                               font="Helvetica 14")
  
-        # create a Continue Button
-        # along with action
-        self.go = Button(self.login,
+        self.passwordEntry.place(relwidth=0.4,
+                             relheight=0.12,
+                             relx=0.35,
+                             rely=0.40)
+ 
+        self.loginButton = Button(self.login,
                          text="CONTINUE",
                          font="Helvetica 14 bold",
-                         command=lambda: self.goAhead(self.entryName.get()))
+                         command=lambda: self.aunthenticate(self.usernameEntry.get(), self.passwordEntry.get()))
  
-        self.go.place(relx=0.4,
-                      rely=0.55)
+        self.loginButton.place(relx=0.15,
+                      rely=0.6)
+        
+        self.registerButton = Button(self.login,
+                         text="REGISTER",
+                         font="Helvetica 14 bold",
+                         command=lambda: self.register(self.usernameEntry.get(), self.passwordEntry.get()))
+ 
+        self.registerButton.place(relx=0.5,
+                      rely=0.6)
         self.Window.mainloop()
  
-    def goAhead(self, name):
-        self.login.destroy()
-        self.layout(name)
- 
-        # the thread to receive messages
-        rcv = threading.Thread(target=self.receive)
-        rcv.start()
- 
-    # The main layout of the chat
+    def aunthenticate(self, username, password):
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM user_info WHERE username = ? AND password = ?", (username, password))
+        user_data = cursor.fetchone()
+        conn.close()
+
+        if user_data:
+            self.login.destroy()
+            self.layout(username)
+    
+            rcv = threading.Thread(target=self.receive)
+            rcv.start()
+        else:
+            messagebox.showerror("Error", "Invalid username or password")
+
+    def register(self, username, password):
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO user_info (username, password) VALUES (?, ?)", (username, password))
+        conn.commit()
+        conn.close()
+        messagebox.showinfo("Success", "New user created successfully!")
+
     def layout(self, name):
  
         self.name = name
@@ -213,7 +228,19 @@ class GUI:
             message = (f"{self.name}: {self.msg}")
             client.send(message.encode(FORMAT))
             break
- 
- 
-# create a GUI class object
+
+def create_user_info_table():
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS user_info (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                password TEXT NOT NULL
+            )
+        ''')
+        conn.commit()
+        conn.close()
+
+create_user_info_table()
 g = GUI()
