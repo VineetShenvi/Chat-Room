@@ -1,10 +1,12 @@
 import socket
 import threading
 import sqlite3
+from datetime import datetime
 from tkinter import *
 from tkinter import font
 from tkinter import ttk
 from tkinter import messagebox
+
  
 PORT = 8800
 SERVER = "127.0.0.1"
@@ -225,7 +227,9 @@ class GUI:
     def sendMessage(self):
         self.textCons.config(state=DISABLED)
         while True:
-            message = (f"{self.name}: {self.msg}")
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            message = (f"[{current_time}]\t{self.name}: {self.msg}")
             client.send(message.encode(FORMAT))
             break
 
