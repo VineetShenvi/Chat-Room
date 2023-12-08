@@ -233,18 +233,4 @@ class GUI:
             client.send(message.encode(FORMAT))
             break
 
-def create_user_info_table():
-        conn = sqlite3.connect("users.db")
-        cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS user_info (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL,
-                password TEXT NOT NULL
-            )
-        ''')
-        conn.commit()
-        conn.close()
-
-create_user_info_table()
 g = GUI()

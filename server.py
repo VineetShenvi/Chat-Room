@@ -1,5 +1,7 @@
 import socket
 import threading
+from datetime import datetime
+import sqlite3
 
 PORT = 8800
 SERVER = "127.0.0.1"
@@ -27,11 +29,11 @@ def startChat():
 		names.append(name)
 		clients.append(conn)
 
-		print(f"Name is :{name}")
+		print(f"Name is : {name}")
+		now = datetime.now()
+		current_time = now.strftime("%H:%M:%S")
 
-		broadcastMessage(f"{name} has joined the chat!".encode(FORMAT))
-
-		conn.send('Connection successful!'.encode(FORMAT))
+		broadcastMessage(f"[{current_time}]\t{name} has joined the chat!".encode(FORMAT))
 
 		# Start the handling thread
 		thread = threading.Thread(target=handle,
@@ -40,7 +42,7 @@ def startChat():
 
 		# no. of clients connected
 		# to the server
-		print(f"active connections {threading.activeCount()-1}")
+		print(f"active connections {threading.active_count()-1}")
 
 # method to handle the
 # incoming messages
@@ -68,6 +70,21 @@ def handle(conn, addr):
 def broadcastMessage(message):
 	for client in clients:
 		client.send(message)
+
+def create_user_info_table():
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS user_info (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                password TEXT NOT NULL
+            )
+        ''')
+        conn.commit()
+        conn.close()
+
+create_user_info_table()
 
 
 # call the method to
