@@ -156,8 +156,6 @@ class GUI:
                               fg="#EAECEE",
                               font="Helvetica 13")
  
-        # place the given widget
-        # into the gui window
         self.entryMsg.place(relwidth=0.74,
                             relheight=0.06,
                             rely=0.008,
@@ -165,7 +163,6 @@ class GUI:
  
         self.entryMsg.focus()
  
-        # create a Send Button
         self.buttonMsg = Button(self.labelBottom,
                                 text="Send",
                                 font="Helvetica 10 bold",
@@ -180,11 +177,8 @@ class GUI:
  
         self.textCons.config(cursor="arrow")
  
-        # create a scroll bar
         scrollbar = Scrollbar(self.textCons)
- 
-        # place the scroll bar
-        # into the gui window
+
         scrollbar.place(relheight=1,
                         relx=0.974)
  
@@ -192,7 +186,6 @@ class GUI:
  
         self.textCons.config(state=DISABLED)
  
-    # function to basically start the thread for sending messages
     def sendButton(self, msg):
         self.textCons.config(state=DISABLED)
         self.msg = msg
@@ -200,17 +193,14 @@ class GUI:
         snd = threading.Thread(target=self.sendMessage)
         snd.start()
  
-    # function to receive messages
     def receive(self):
         while True:
             try:
                 message = client.recv(1024).decode(FORMAT)
  
-                # if the messages from the server is NAME send the client's name
                 if message == 'NAME':
                     client.send(self.name.encode(FORMAT))
                 else:
-                    # insert messages to text box
                     self.textCons.config(state=NORMAL)
                     self.textCons.insert(END,
                                          message+"\n\n")
@@ -218,12 +208,10 @@ class GUI:
                     self.textCons.config(state=DISABLED)
                     self.textCons.see(END)
             except:
-                # an error will be printed on the command line or console if there's an error
                 print("An error occurred!")
                 client.close()
                 break
  
-    # function to send messages
     def sendMessage(self):
         self.textCons.config(state=DISABLED)
         while True:
